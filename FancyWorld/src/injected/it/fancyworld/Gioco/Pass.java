@@ -5,8 +5,7 @@ package injected.it.fancyworld.Gioco;
  */
 public class Pass extends Luogo 
 {
-
-    public Pass(int x, int y, String name, String tag) {
-        super(x, y, name, tag);
+    public Pass(int x, int y, String name) {
+        super(x, y, name);
     }
 }

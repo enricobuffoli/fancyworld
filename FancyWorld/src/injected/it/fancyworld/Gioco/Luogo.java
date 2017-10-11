@@ -8,15 +8,13 @@ import java.awt.*;
 public class Luogo {
 
     private Point position;
-    private String name,tag;
+    private String name;
 
-    public Luogo(int x, int y, String name, String tag)
+    public Luogo(int x, int y, String name)
     {
         position = new Point(x,y);
         this.name = name;
-        this.tag = tag;
     }
-
 
     public Point getPosition()
     {
@@ -27,17 +25,7 @@ public class Luogo {
     {
         return name;
     }
-
-    public String getTag()
-    {
-        return tag;
-    }
-
-    public void setTag(String s)
-    {
-        tag = s;
-    }
-
+    
     public void setName(String name)
     {
     	this.name = name;

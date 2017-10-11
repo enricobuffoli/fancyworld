@@ -1,5 +1,6 @@
 package injected.it.fancyworld.Gioco;
 
+import injected.it.fancyworld.Gioco.Luoghi.*;
 import injected.it.fancyworld.Utils.Utility;
 
 import java.awt.*;
@@ -14,12 +15,14 @@ import static injected.it.fancyworld.Utils.Utility.*;
 public class Livello
 {
     private ArrayList<ArrayList<Luogo>> riga;
-    private int levelIndex,levUp,levTrap,connection;
+    private int levelIndex,levUp,levTrap;
     private Point startPos;
     private ArrayList<UpStairs> upStairses;
     private ArrayList<DownStairs> downStairses;
     private ArrayList<Trap> traps;
     private Start start;
+    private Goal goal;
+    private final int boardDim = 20;
 
     public Livello(int levelIndex, Point startPos, ArrayList<DownStairs> downStairs)
     {
@@ -27,9 +30,8 @@ public class Livello
         	this.downStairses = downStairs;
         this.levelIndex = levelIndex;
         this.startPos = startPos;
-        levUp = NUMBER_OF_LEVELS - levelIndex - 4;
+        levUp = NUMBER_OF_LEVELS - 4;
         levTrap = levelIndex;
-        connection = levelIndex + 1;
         riga = new ArrayList<>();
         upStairses = new ArrayList<>();
         traps = new ArrayList<>();
@@ -39,31 +41,47 @@ public class Livello
     private void createLevel()
     {
 
-        //Creazione Livelli
-
         for(int i = 0 ; i < MAP_DIMENSION; i++)
         {
             ArrayList<Luogo> colonna = new ArrayList<>();
             for(int j = 0; j < MAP_DIMENSION; j++)
-                colonna.add(new Normal(i ,j ,"Void","N"));
+                colonna.add(new Normal(i ,j ,"Void"));
             riga.add(colonna);
         }
 
-        start = new Start(startPos.x,startPos.y,getPlaceName(),"S");
-        riga.get(startPos.x).set(startPos.y, start);
+        if(levelIndex==1) {
+            start = new Start(startPos.x, startPos.y, getPlaceName());
+            riga.get(startPos.x).set(startPos.y, start);
+        }
 
-        for(int i = 0; i < levUp; i++)
-        {
-            int x = Utility.getRandomNumber();
-            int y = Utility.getRandomNumber();
-            if(!(riga.get(x).get(y) instanceof Normal))
-                i--;
-            else
-            {
-                UpStairs temp = new UpStairs(x,y,getPlaceName(),"U");
-                riga.get(temp.getPosition().x).set(temp.getPosition().y, temp);
-                upStairses.add(temp);
+
+        if(levelIndex!=10) {
+
+            for (int i = 0; i < levUp; i++) {
+                int x = Utility.getRandomNumber();
+                int y = Utility.getRandomNumber();
+                if (!(riga.get(x).get(y) instanceof Normal))
+                    i--;
+                else {
+                    UpStairs temp = new UpStairs(x, y, getPlaceName());
+                    riga.get(temp.getPosition().x).set(temp.getPosition().y, temp);
+                    upStairses.add(temp);
+                }
             }
+        }
+        else
+        {
+            int x,y;
+            do
+            {
+                x = Utility.getRandomNumber();
+                y = Utility.getRandomNumber();
+
+            }while(!(riga.get(x).get(y) instanceof Normal));
+
+            goal = new Goal(x,y,getPlaceName());
+            riga.get(x).set(y,goal);
+
         }
 
         for(int i = 0; i < levTrap; i++)
@@ -74,7 +92,7 @@ public class Livello
                 i--;
             else
             {
-                Trap temp = new Trap(x,y,getPlaceName(),"T");
+                Trap temp = new Trap(x,y,getPlaceName());
                 riga.get(temp.getPosition().x).set(temp.getPosition().y, temp);
                 traps.add(temp);
             }
@@ -88,139 +106,73 @@ public class Livello
             	int y = downStairses.get(i).getPosition().y;
             	
             	if(!(riga.get(x).get(y) instanceof Start || riga.get(x).get(y) instanceof UpStairs))
-            	{
-            		DownStairs temp = new DownStairs(x, y, getPlaceName(), "D");
-            		riga.get(temp.getPosition().x).set(temp.getPosition().y, temp);
-            	}
+            		riga.get(x).set(y, downStairses.get(i));
+            	
             }
         }
 
         linkPoint();
 
-        for(int i = 0;i < 20; i++) {
-            for (int j = 0; j < 20; j++)
-                System.out.print(riga.get(i).get(j).getTag() + " ");
-            System.out.println();
-        }
     }
 
     private void linkPoint()
     {
-        for(UpStairs temp : upStairses)
-        {
-            int x = temp.getPosition().x - startPos.x;
-            int y = temp.getPosition().y - startPos.y;
-
-            if(x < 0)
-                for(int i = temp.getPosition().x; i < startPos.x; i++)
-                {
-                    if(riga.get(i).get(startPos.y).getTag().equals("N"))
-                        riga.get(i).set(startPos.y, new Pass(i ,startPos.y,getPlaceName(),"P"));
-                }
-            else
-            {	for(int i = startPos.x + 1; i <= temp.getPosition().x; i++)
-            {
-                if(riga.get(i).get(startPos.y).getTag().equals("N"))
-                    riga.get(i).set(startPos.y, new Pass(i, startPos.y,getPlaceName(),"P"));
-            }
-            }
-
-            if(y < 0)
-            {
-                for(int i = temp.getPosition().y ; i < startPos.y; i++)
-                {
-                    if(riga.get(temp.getPosition().x).get(i).getTag().equals("N"))
-                        riga.get(temp.getPosition().x).set(i, new Pass(temp.getPosition().x ,i,getPlaceName(),"P"));
-                }
-            }
-            else
-            {
-                for(int i = startPos.y; i < temp.getPosition().y; i++)
-                {
-                	if(riga.get(temp.getPosition().x).get(i).getTag().equals("N"))
-                        riga.get(temp.getPosition().x).set(i, new Pass(temp.getPosition().x, i,getPlaceName(),"P"));
-                }
-            }
-
+        if(levelIndex!=10) {
+            for (UpStairs temp : upStairses)
+                placesConnectionPath(temp);
         }
-
+        else
+        {
+            placesConnectionPath(goal);
+        }
         for(Trap temp : traps)
-        {
-            int x = temp.getPosition().x - startPos.x;
-            int y = temp.getPosition().y - startPos.y;
-
-            if(x < 0)
-                for(int i = temp.getPosition().x; i < startPos.x; i++)
-                {
-                    if(!SPECIAL_TAG_VALUE.contains(riga.get(i).get(startPos.y).getTag()))
-                        riga.get(i).set(startPos.y, new Pass(i ,startPos.y,getPlaceName(),"P"));
-                }
-            else
-            {	for(int i = startPos.x + 1; i <= temp.getPosition().x; i++)
-            {
-                if(!SPECIAL_TAG_VALUE.contains(riga.get(i).get(startPos.y).getTag()))
-                    riga.get(i).set(startPos.y, new Pass(i, startPos.y,getPlaceName(),"P"));
-            }
-            }
-
-            if(y < 0)
-            {
-                for(int i = temp.getPosition().y ; i < startPos.y; i++)
-                {
-                    if(!SPECIAL_TAG_VALUE.contains(riga.get(i).get(startPos.y).getTag()))
-                        riga.get(temp.getPosition().x).set(i, new Pass(temp.getPosition().x ,i,getPlaceName(),"P"));
-                }
-            }
-            else
-            {
-                for(int i = startPos.y; i < temp.getPosition().y; i++)
-                {
-                    if(!SPECIAL_TAG_VALUE.contains(riga.get(i).get(startPos.y).getTag()))
-                        riga.get(temp.getPosition().x).set(i, new Pass(temp.getPosition().x, i,getPlaceName(),"P"));
-                }
-            }
-        }
+            placesConnectionPath(temp);
         
         if(downStairses != null)
-        {
-        	for(DownStairs temp : downStairses)
-            {
-                int x = temp.getPosition().x - startPos.x;
-                int y = temp.getPosition().y - startPos.y;
-                
-                if(x < 0)
-                    for(int i = temp.getPosition().x; i < startPos.x; i++)
-                    {
-                        if(riga.get(i).get(startPos.y).getTag().equals("N"))
-                            riga.get(i).set(startPos.y, new DownStairs(i ,startPos.y,getPlaceName(),"P"));
-                    }
-                else
-                {	for(int i = startPos.x + 1; i <= temp.getPosition().x; i++)
-                {
-                    if(riga.get(i).get(startPos.y).getTag().equals("N"))
-                        riga.get(i).set(startPos.y, new DownStairs(i ,startPos.y,getPlaceName(),"P"));
-                }
-                }
+            for(DownStairs temp : downStairses)
+                placesConnectionPath(temp);
 
-                if(y < 0)
-                {
-                    for(int i = temp.getPosition().y ; i < startPos.y; i++)
-                    {
-                        if(riga.get(temp.getPosition().x).get(i).getTag().equals("N"))
-                            riga.get(temp.getPosition().x).set(i, new DownStairs(temp.getPosition().x ,i,getPlaceName(),"P"));
-                    }
-                }
-                else
-                {
-                    for(int i = startPos.y; i < temp.getPosition().y; i++)
-                    {
-                    	if(riga.get(temp.getPosition().x).get(i).getTag().equals("N"))
-                            riga.get(temp.getPosition().x).set(i, new DownStairs(temp.getPosition().x ,i,getPlaceName(),"P"));
-                    }
-                }
-
-        }}
     }
+
+    private void placesConnectionPath(Luogo temp)
+    {
+        int x = temp.getPosition().x - startPos.x;
+        int y = temp.getPosition().y - startPos.y;
+
+        if(x < 0)
+            generalConnectionPathX(temp.getPosition().x,startPos.x);
+        else
+            generalConnectionPathX(startPos.x+1,temp.getPosition().x);
+
+        if(y < 0)
+            generalConnectionPathY(temp.getPosition().y+1,startPos.y,temp.getPosition().x);
+        else
+            generalConnectionPathY(startPos.y+1,temp.getPosition().y,temp.getPosition().x);
+    }
+
+    private void generalConnectionPathX(int xIn ,int xFin)
+    {
+        for(int i = xIn; i < xFin; i++)
+        {
+            if(riga.get(i).get(startPos.y).getTag().equals("N"))
+                riga.get(i).set(startPos.y, new Pass(i ,startPos.y,getPlaceName()));
+        }
+    }
+
+    private void generalConnectionPathY(int yIn ,int yFin, int X)
+    {
+        for(int i = yIn; i < yFin; i++)
+        {
+            if(riga.get(X).get(i).getTag().equals("N"))
+                riga.get(X).set(i, new Pass(X ,i,getPlaceName()));
+        }
+    }
+
+    public boolean isGoal(Point point)
+    {
+        return riga.get(point.x).get(point.y).getTag()=="G";
+    }
+
     public ArrayList<UpStairs> getUpStairses()
     {
         return upStairses;
@@ -266,7 +218,6 @@ public class Livello
     }
     private boolean walkableIstance(int x, int y)
     {
-        System.out.println(x+" "+y+"  "+riga.get(x).get(y).getTag());
         return riga.get(x).get(y) instanceof Pass || riga.get(x).get(y) instanceof UpStairs || riga.get(x).get(y) instanceof Trap || riga.get(x).get(y) instanceof DownStairs || riga.get(x).get(y) instanceof Start;
     }
     
@@ -274,5 +225,36 @@ public class Livello
     {
     	return riga;
     }
+
+    public void playerIsPassedHere(Point point)
+    {
+        riga.get(point.x).get(point.y).alreadyPassed();
+    }
+
+    public String toString(Point point) {
+        String map = "";
+
+        for (int i = 0; i < boardDim; i++){
+            for (int j = 0; j < boardDim; j++) {
+                if (i == point.x && j == point.y)
+                	map += "P";
+//                    map += (char)0 + "" + (char)0;
+                else {
+                    if(riga.get(i).get(j).isPassed() && riga.get(i).get(j) instanceof Trap)
+                    	map += "T";
+                	if (riga.get(i).get(j).isPassed())
+                        map += " ";
+                    else
+                    	map +="*";
+//                        map += "██";
+                }
+                map += " ";
+            }
+            map+="\n";
+        }
+
+        return map;
+    }
+
 }
 

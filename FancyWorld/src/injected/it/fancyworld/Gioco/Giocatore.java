@@ -47,4 +47,9 @@ public class Giocatore {
     {
         return position;
     }
+
+    public String getNome()
+    {
+        return nome;
+    }
 }
